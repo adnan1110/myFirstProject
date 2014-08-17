@@ -1,12 +1,11 @@
 <?php
 
 require 'C:\wamp\www\hello_php\vendor\Slim\Slim\Slim\Slim.php';
-require_once '../include/DbConnect.php';	
+require_once 'DbConnect.php';	
 	
 \Slim\Slim::registerAutoloader ();
 	
 $app = new \Slim\Slim ();
-echo "hello ";
 function echoResponse($status_code, $response) {
 	$app = \Slim\Slim::getInstance ();
 	// Http response code
