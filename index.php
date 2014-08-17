@@ -1,6 +1,7 @@
 <?php
 
-require 'C:\wamp\www\hello_php\vendor\Slim\Slim\Slim\Slim.php';
+#require 'C:\wamp\www\hello_php\vendor\Slim\Slim\Slim\Slim.php';
+require('vendor/autoload.php');
 require_once 'DbConnect.php';	
 	
 \Slim\Slim::registerAutoloader ();
