@@ -132,7 +132,10 @@ $app->get ('/accounts', function () {
 		$tmp ["id"] = $account [0];
 		$tmp ["name"] = $account [1];
 		$tmp ["email"] = $account [2];
-		
+		$tmp ["password_hash"] = $account[3];
+		$tmp ["api_key"] = $account[4]; 
+		$tmp ["status"] = $account[5];
+		$tmp["created_at"] = $account[6];
 		array_push ( $response ["accounts"], $tmp );
 	}
 
