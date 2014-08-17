@@ -133,9 +133,9 @@ $app->get ('/accounts', function () {
 		$tmp ["name"] = $account [1];
 		$tmp ["email"] = $account [2];
 		$tmp ["password_hash"] = $account[3];
-		$tmp ["api_key"] = $account[4]; 
-		$tmp ["status"] = $account[5];
-		$tmp["created_at"] = $account[6];
+		$tmp ["status"] = $account[4]; 
+		$tmp ["created_at"] = $account[5];
+		$tmp ["api_key"] = $account[6];
 		array_push ( $response ["accounts"], $tmp );
 	}
 
