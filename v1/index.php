@@ -6,7 +6,7 @@ require_once '../include/DbConnect.php';
 \Slim\Slim::registerAutoloader ();
 	
 $app = new \Slim\Slim ();
-
+echo "hello ";
 function echoResponse($status_code, $response) {
 	$app = \Slim\Slim::getInstance ();
 	// Http response code
