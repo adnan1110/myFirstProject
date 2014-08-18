@@ -76,5 +76,34 @@ Class DbHandler {
 		
 		
 	}	
-}
+
+	public function checkLogin($email, $password){
+		require_once 'PassHash.php';
+		
+		$params = array(); 
+		$params[0] = $email; 
+		$result = pg_query_params($this->conn, "SELECT password_hash FROM accounts WHERE email 
+		= $1;", $params); 
+		
+		if(pg_num_rows($result) > 0){
+			$row = pg_fetch_assoc($result); 
+			$password_hash = $row["password_hash"];
+			if(PassHash::check_password($password_hash, $password))
+				return TRUE; 
+			else 
+				return FALSE;
+		} else 
+			return FALSE;
+		
+	}
+	
+	public function getAccountByEmail($email){
+		$params = array(); 
+		$params[0] = $email;
+		$result = pg_query_params($this->conn,"SELECT name, email, api_key, status, 
+		created_at FROM accounts WHERE email = $1;",$params);
+		return pg_fetch_assoc($result);
+	}
+	
+	}
 ?>

@@ -72,6 +72,7 @@ $app->get ( '/test', function (){
 	echoResponse( 200, $response );
 });
 
+#create a new account
 $app->post('/register', function() use ($app){
 
 	verifyRequiredParams(array('name', 'email', 'password'));
@@ -115,7 +116,7 @@ $app->get ( '/databasetest', function (){
 	echoResponse( 200, $response );
 });
 
-
+#retrieve all accounts
 $app->get ('/accounts', function () {
 	
 	$response = array();
@@ -140,6 +141,39 @@ $app->get ('/accounts', function () {
 	}
 
 	echoResponse ( 200, $response );
+});
+
+# check login
+$app->post('/login', function() use ($app) {
+	verifyRequiredParams(array('email', 'password'));
+	
+	$email = $app->request()->post('email');
+    $password = $app->request()->post('password');
+    $response = array();
+	
+	$db = new DbHandler();
+	
+	if($db->checkLogin($email,$password))
+	{
+		$user = $db->getAccountByEmail($email);
+		if($user != NULL){
+			$response["error"] = false;
+            $response['name'] = $user['name'];
+            $response['email'] = $user['email'];
+			$response['apiKey'] = $user['api_key'];
+            $response['createdAt'] = $user['created_at'];
+		
+		} else{
+			$response['error'] = true;
+			$response['message'] = "An error occurred. Please try again";
+		}
+	} else { 
+		$response['error'] = true;
+        $response['message'] = 'Login failed. Incorrect credentials';
+	}
+	
+	echoResponse(200, $response);
+
 });
 
 $app->run ();
