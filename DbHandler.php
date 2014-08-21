@@ -106,4 +106,14 @@ Class DbHandler {
 	}
 	
 	}
+	
+	public function createPost($user_id,$title, $body){
+		$params = new array(); 
+		$params[0] = $user_id;
+		$params[1] = $title; 
+		$params[2] = $body;
+		$query = pg_query_params($this->conn,"INSERT INTO posts (title, body) VALUES ($2, $3);", $params);
+		
+		
+	}
 ?>
