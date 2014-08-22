@@ -49,7 +49,7 @@ Class DbHandler {
 		return 2; 
 	}
 	
-	private function isAccountExists($email) {
+	public function isAccountExists($email) {
 		$params = array();
 		$params["email"] = $email;
         $result = pg_query_params($this->conn,"SELECT id from accounts WHERE email = $1", $params);
@@ -97,6 +97,21 @@ Class DbHandler {
 		
 	}
 	
+	
+	
+	public function getAccountId($api_key){
+		
+		$params = array();
+		$params[0] = $api_key;
+		$query = pg_query_params($this->conn, "SELECT id FROM accounts WHERE api_key = $1;",$params);
+		$row = pg_fetch_assoc($query); 
+		if($row != null){
+			return $row["id"];
+		}
+		
+		return null;
+	}
+	
 	public function getAccountByEmail($email){
 		$params = array(); 
 		$params[0] = $email;
@@ -105,15 +120,53 @@ Class DbHandler {
 		return pg_fetch_assoc($result);
 	}
 	
+	
+	public function createAccountPost($account_id,$post_id){
+		$params = array();
+		$params[0] = $account_id;
+		$params[1] = $post_id;
+		$query = pg_query_params($this->conn, "INSERT INTO account_posts(account_id, post_id) values ($1, $2 ) RETURNING id;", $params);
+		
+		return pg_fetch_assoc($query);
 	}
 	
-	public function createPost($user_id,$title, $body){
-		$params = new array(); 
-		$params[0] = $user_id;
-		$params[1] = $title; 
-		$params[2] = $body;
-		$query = pg_query_params($this->conn,"INSERT INTO posts (title, body) VALUES ($2, $3);", $params);
+	public function createPost($account_id,$title, $body){
+		$params =  array(); 
+		$params[0] = $title;  
+		$params[1] = $body;
+		$query = pg_query_params($this->conn,"INSERT INTO posts (title, body) VALUES ($1, $2) RETURNING id;", $params);
 		
-		
+		if($query != null)
+		{
+			$row = pg_fetch_assoc($query);
+			$new_post_id = $row["id"];
+			$result = $this->createAccountPost($account_id, $new_post_id);
+			
+			if($result != null){
+				return $new_post_id;
+			
+			} else {
+				return null;
+				}
+		} else {
+			return null;
+		}
 	}
+	
+	public function getAllPosts(){
+		$result = pg_query($this->conn,"SELECT * FROM posts;");
+		
+		if($result == false){
+		
+			echo 'error occured' . pg_last_error($this->conn);
+			return NULL;
+		} else{
+			
+			return $result;
+		}
+	
+	
+	}
+	
+}
 ?>

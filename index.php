@@ -7,6 +7,43 @@ require_once 'DbHandler.php';
 \Slim\Slim::registerAutoloader ();
 	
 $app = new \Slim\Slim ();
+
+$account_id = null;
+
+function authenticate(\Slim\Route $route) {
+    // Getting request headers
+    $headers = apache_request_headers();
+    $response = array();
+    $app = \Slim\Slim::getInstance();
+ 
+    // Verifying Authorization Header
+    if (isset($headers['authorization'])) {
+        $db = new DbHandler();
+ 
+        // get the api key
+        $api_key = $headers['authorization'];
+        // validating api key
+		$temp = $db->getAccountId($api_key);
+        if (!$temp) {
+            // api key is not present in users table
+            $response["error"] = true;
+            $response["message"] = "Access Denied. Invalid Api key";
+            echoResponse(401, $response);
+            $app->stop();
+        } else {
+            
+            // get user primary key id
+            global $account_id;
+			$account_id	= $temp;
+        }
+    } else {
+        // api key is missing in header
+        $response["error"] = true;
+        $response["message"] = "Api key is misssing";
+        echoResponse(400, $response);
+        $app->stop();
+    }
+}
 function echoResponse($status_code, $response) {
 	$app = \Slim\Slim::getInstance ();
 	// Http response code
@@ -52,19 +89,19 @@ function verifyRequiredParams($required_fields) {
         $app = \Slim\Slim::getInstance();
         $response["error"] = true;
         $response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
-        echoRespnse(400, $response);
+        echoResponse(400, $response);
         $app->stop();
     }
 }
 
 
-$app->get ( '/test', function (){
-	$response = array ();
-		
+$app->get ( '/test', 'authenticate', function () use ($app) {
+	
+	$response = array ();	
 	$response ["error"] = false;
 	
 	$db = new DbHandler ();
-	$result = $db->isAccountExists();
+	$result = $db->isAccountExists("adnan@gmail.com");
 	if($result)
 		$response ["message"] = "it works!!!" . $result;
 	else 
@@ -97,7 +134,7 @@ $app->post('/register', function() use ($app){
 		echoRespnse(200, $response);
 	} else if ($result == 2) {
 		$response["error"] = true;
-		$response["message"] = "Sorry, this email already existed";
+		$response["message"] = "Sorry, there is already a user with this email. ";
 		echoResponse(200, $response);
 	}
 
@@ -137,7 +174,7 @@ $app->get ('/accounts', function () {
 		$tmp ["status"] = $account[4]; 
 		$tmp ["created_at"] = $account[5];
 		$tmp ["api_key"] = $account[6];
-		array_push ( $response ["accounts"], $tmp );
+		array_push ( $response["accounts"], $tmp );
 	}
 
 	echoResponse ( 200, $response );
@@ -173,6 +210,59 @@ $app->post('/login', function() use ($app) {
 	}
 	
 	echoResponse(200, $response);
+
+});
+
+$app->post('/post','authenticate', function () use ($app) {
+	
+	verifyRequiredParams(array('title', 'body'));
+	$response = array();
+	$title = $app->request->post('title');
+	$body = $app->request->post('body');
+	
+	global $account_id;
+    $db = new DbHandler();
+	
+	$post_id = $db->createPost($account_id, $title, $body);
+	
+	if ($post_id != NULL) {
+                $response["error"] = false;
+                $response["message"] = "post created successfully";
+                $response["task_id"] = $post_id;
+            } else {
+                $response["error"] = true;
+                $response["message"] = "Failed to create post. Please try again";
+            }
+            echoResponse(201, $response);
+
+});
+
+$app->get('/post',function () use ($app) {
+	
+	
+	$response = array();
+	
+    $db = new DbHandler();
+	
+	$result = $db->getAllPosts();
+	
+	if ($result != NULL) {
+		$response ["error"] = false;
+		$response ["posts"] = array ();
+                while ( $post = pg_fetch_row($result) ) {
+				
+					$tmp = array ();
+					$tmp ["id"] = $post [0];
+					$tmp ["title"] = $post [1];
+					$tmp ["body"] = $post [2];
+					array_push ( $response ["posts"], $tmp );
+			}
+	
+    } else {
+        $response["error"] = true;
+        $response["message"] = "Failed to create post. Please try again";
+        }
+    echoResponse(200, $response);
 
 });
 
